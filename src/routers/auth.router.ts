@@ -1,14 +1,14 @@
-import express from "express" ; 
-import authController from "../controllers/user.controller" ; 
+import express from "express";
+import authController from "../controllers/user.controller";
 
-const router = express.Router() ; 
+const router = express.Router();
 
 
 // auth router 
-router.post("/signup" , authController.Signup) ; 
-// router.post("/login") ; 
-// router.post("/logout") ; 
-// router.get("/refresh") ; 
+router.post("/signup", authController.Signup);
+router.post("/login", authController.Login);
+router.post("/logout", authController.Logout);
+router.get("/refresh", authController.RefreshToken);
 
 
 // // password router 
@@ -27,4 +27,4 @@ router.post("/signup" , authController.Signup) ;
 // router.put("/admin/user/:id") ; 
 // router.delete("/admin/user/:id") ; 
 
-export default router ; 
+export default router; 

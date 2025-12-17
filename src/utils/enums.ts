@@ -1,1 +1,1 @@
-export enum UserType {ADMIN = 'admin' , NORMAL_USER = 'normal'} 
+export enum UserType { ADMIN = 'admin', NORMAL_USER = 'normal' } 

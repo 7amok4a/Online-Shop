@@ -10,12 +10,12 @@ const AppDataSource = new DataSource({
     database: ENV.DB_NAME,
     entities: [
         ENV.NODE_ENV === "development"
-        ? "src/models/*.ts"
-        : "dist/models/*.js"
+            ? "src/models/*.ts"
+            : "dist/models/*.js"
     ],
     synchronize: true,
     logging: false,
 })
 
 
-export default AppDataSource ; 
+export default AppDataSource; 
