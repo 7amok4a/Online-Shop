@@ -76,7 +76,7 @@ export class User {
     createRefreshToken(): string {
         const token = jwt.sign({ id: this.id },
             ENV.JWT_SECRET_REFRESH,
-            { expiresIn: ENV.ACCESS_JWT_EXPIRES_TIME as jwt.SignOptions['expiresIn'] });
+            { expiresIn: ENV.RESERSH_JWT_EXPIRES_TIME as jwt.SignOptions['expiresIn'] });
 
         return token;
     }
