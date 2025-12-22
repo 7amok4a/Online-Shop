@@ -14,6 +14,8 @@ interface ENVConfig {
     JWT_SECRET_ACCESS: string;
     RESERSH_JWT_EXPIRES_TIME: string;
     ACCESS_JWT_EXPIRES_TIME: string;
+    App_pass : string ; 
+    Sender_Mail : string ; 
 }
 
 const ENV: ENVConfig = {
@@ -27,6 +29,8 @@ const ENV: ENVConfig = {
     JWT_SECRET_ACCESS: process.env.JWT_SECRET_ACCESS!,
     RESERSH_JWT_EXPIRES_TIME: process.env.RESERSH_JWT_EXPIRES_TIME!,
     ACCESS_JWT_EXPIRES_TIME: process.env.ACCESS_JWT_EXPIRES_TIME!,
+    Sender_Mail : process.env.Sender_Mail! , 
+    App_pass : process.env.App_pass! , 
 }
 
 

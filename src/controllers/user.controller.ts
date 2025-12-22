@@ -1,16 +1,20 @@
 import fs from "fs";
+import crypto from "crypto";
 import path from "node:path";
 import ENV from "../config/env";
 import jwt from "jsonwebtoken";
+import { MoreThan } from "typeorm";
 import { CookieOptions } from "express";
 import AppDataSource from "../database";
+import sendEmail from "../emails/sendEmail";
 import { User } from "../models/user.module";
 import { StatusCodes } from "http-status-codes";
+import { validateOrReject } from "class-validator";
 import { AuthPayload, SafeUser } from "../utils/types";
 import BadRequestError from "../errors/bad-request.error";
 import unAuthenticatedError from "../errors/unAuth.error";
 import asyncWrapper from "../middlewares/acyncWrapper.middleware";
-import { validateOrReject } from "class-validator";
+
 
 
 const userRepositiry = AppDataSource.getRepository(User);
@@ -233,7 +237,96 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
 })
 
 
+// passord changes 
 
+const forgetPassword = asyncWrapper(async (req, res) => {
+    const email = req.body.email;
+
+    const user = await userRepositiry.findOneBy({ email: email });
+
+    if (!user)
+        throw new BadRequestError("Email is not found");
+
+    const resetToken = user.getResetPasswordToken();
+
+
+    await validateOrReject(user);
+    await userRepositiry.save(user);
+
+    const URL = `${req.protocol}://${req.get('host')}/api/v1/password/reset/${resetToken}`;
+
+    //await sendEmail(user.email, user.name , URL) ; 
+
+    res.status(StatusCodes.OK).json(URL);
+})
+
+
+const resetPassword = asyncWrapper(async (req, res) => {
+
+    const token = req.params.token;
+
+    const { password, confirmPassword } = req.body;
+
+    const resetPasswordToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await userRepositiry.findOne({where : {
+        resetPasswordToken , 
+        resetPasswordExpire : MoreThan(new Date())  
+    }});
+
+    if (!user)
+        throw new BadRequestError("User is not founded");
+
+
+    if (password !== confirmPassword)
+        throw new BadRequestError("Password not match");
+
+    user.setPassword(password);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+
+    await userRepositiry.save(user);
+
+    res.status(StatusCodes.OK).json(({ message: "Reset Password done", user }));
+})
+
+
+
+const updatePassword = asyncWrapper(async (req, res) => {
+
+    const id = req["user"].id;
+    const { oldPassword, password } = req.body;
+
+    const user = await userRepositiry.findOneBy({ id: id }) as User;
+    console.log(user);
+    const isMatch = await user.comparePassword(oldPassword);
+
+    if (!isMatch)
+        throw new BadRequestError("Password is not correct");
+
+    await user.setPassword(password);
+
+    await validateOrReject(user);
+    await userRepositiry.save(user);
+
+    const safeUser: SafeUser = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profileImage: user.profileImage,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+    };
+
+    res.status(StatusCodes.OK).json({ user: safeUser });
+
+})
+
+
+
+// Admin Section 
 const getAllUsers = asyncWrapper(async (req, res) => {
     const users = await userRepositiry.find();
 
@@ -304,4 +397,7 @@ export default {
     getUserDetails,
     updateUser,
     deleteUser,
+    forgetPassword,
+    resetPassword,
+    updatePassword,
 }

@@ -5,7 +5,7 @@ import ENV from "../config/env";
 import { UserType } from "../utils/enums";
 import { CURRENT_TIMESTAMP } from "../utils/constants";
 import { IsEmail, IsNotEmpty, MinLength } from "class-validator";
-import { BeforeInsert, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity("users")
 export class User {
@@ -52,12 +52,32 @@ export class User {
     updatedAt: Date;
 
 
+    private passwordChanged : boolean = false ; 
+
     @BeforeInsert()
+    async hashPasswordOnInsert() {
+        return this.hashPassword() ; 
+    }
+
+    @BeforeUpdate() 
+    async hashPasswordOnUpdate() {
+        if(this.passwordChanged) {
+            await this.hashPassword() ; 
+            this.passwordChanged = false ; 
+        }
+            
+    }
+
     async hashPassword() {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
     }
 
+
+    async setPassword(newPassword : string) {
+        this.password = newPassword ; 
+        this.passwordChanged = true ; 
+    } 
 
     async comparePassword(enterPassword: string): Promise<boolean> {
         const isMatch = await bcrypt.compare(enterPassword, this.password);
